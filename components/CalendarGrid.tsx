@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Check, X, Clock, User, Calendar as CalendarIcon, Eraser } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, X, Clock, User, Calendar as CalendarIcon, Eraser, Sparkles } from 'lucide-react';
 import { Student, AttendanceRecord, AttendanceStatus } from '../types';
 
 interface Props {
   student?: Student;
   records: AttendanceRecord[];
   onUpdateAttendance: (date: string, studentId: string, status: AttendanceStatus) => void;
+  onViewAnalysis?: (studentId: string) => void;
 }
 
-const CalendarGrid: React.FC<Props> = ({ student, records, onUpdateAttendance }) => {
+const CalendarGrid: React.FC<Props> = ({ student, records, onUpdateAttendance, onViewAnalysis }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [editingDay, setEditingDay] = useState<number | null>(null);
 
@@ -49,13 +50,24 @@ const CalendarGrid: React.FC<Props> = ({ student, records, onUpdateAttendance })
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header Info */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl">
             {student.name.charAt(0)}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-800">{student.name} 的出勤表</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-800">{student.name} 的出勤表</h2>
+              {onViewAnalysis && (
+                <button 
+                  onClick={() => onViewAnalysis(student.id)}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>AI 分析报告</span>
+                </button>
+              )}
+            </div>
             <div className="flex items-center text-slate-500 text-sm mt-0.5">
               <CalendarIcon className="w-4 h-4 mr-1.5" />
               <span>{year}年 {monthNames[month]}</span>
@@ -140,7 +152,6 @@ const CalendarGrid: React.FC<Props> = ({ student, records, onUpdateAttendance })
                       color="rose" label="缺勤" icon={<X className="w-3 h-3" />}
                     />
                     
-                    {/* Reset Option */}
                     {status !== 'unmarked' && (
                       <div className="h-px bg-slate-100 my-1"></div>
                     )}

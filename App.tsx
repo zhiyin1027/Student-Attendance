@@ -9,6 +9,7 @@ import AISummary from './components/AISummary';
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'calendar' | 'students' | 'analysis'>('calendar');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [analysisStudentId, setAnalysisStudentId] = useState<string | null>(null);
   
   const [students, setStudents] = useState<Student[]>(() => {
     const saved = localStorage.getItem('sa_students');
@@ -21,7 +22,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('sa_students', JSON.stringify(students));
-    // Set first student as default if none selected
     if (students.length > 0 && !selectedStudentId) {
       setSelectedStudentId(students[0].id);
     }
@@ -50,12 +50,9 @@ const App: React.FC = () => {
   const updateAttendance = (date: string, studentId: string, status: AttendanceStatus) => {
     setRecords(prev => {
       const id = `${date}_${studentId}`;
-      
-      // If setting to unmarked, just remove the record
       if (status === 'unmarked') {
         return prev.filter(r => r.id !== id);
       }
-
       const existing = prev.findIndex(r => r.id === id);
       if (existing > -1) {
         const updated = [...prev];
@@ -64,6 +61,11 @@ const App: React.FC = () => {
       }
       return [...prev, { id, date, studentId, status }];
     });
+  };
+
+  const handleViewAnalysis = (studentId: string) => {
+    setAnalysisStudentId(studentId);
+    setActiveTab('analysis');
   };
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
@@ -94,7 +96,10 @@ const App: React.FC = () => {
           />
           <NavItem 
             active={activeTab === 'analysis'} 
-            onClick={() => setActiveTab('analysis')}
+            onClick={() => {
+              setActiveTab('analysis');
+              // 默认点击分析时，如果不带特定 ID，则恢复全班汇总（或保留上次选择）
+            }}
             icon={<ChartBar className="w-5 h-5" />}
             label="数据分析" 
           />
@@ -174,6 +179,7 @@ const App: React.FC = () => {
             student={selectedStudent} 
             records={records} 
             onUpdateAttendance={updateAttendance} 
+            onViewAnalysis={handleViewAnalysis}
           />
         )}
         {activeTab === 'students' && (
@@ -191,6 +197,7 @@ const App: React.FC = () => {
           <AISummary 
             students={students} 
             records={records} 
+            initialStudentId={analysisStudentId}
           />
         )}
       </main>
